@@ -136,6 +136,7 @@ An immersive web application combining computer vision, 3D graphics, and audio t
 - 机构：暨南大学国际学院
 
 - Email: 2274743960@qq.com
+- Github Account: https://github.com/2274743960-rgb/Heart_Practice_Project-
 - Institution: International College, Jinan University
 
 ## 致谢 / Acknowledgments
