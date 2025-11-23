@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xia Guoqing | Interactive Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #0f3460;
+            --text: #e6e6e6;
+            --highlight: #ff69b4;
+            --highlight2: #00ffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #videoEl {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        #drawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #threeDiv {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* 个人信息 - 左上角 */
+        .personal-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            max-width: 280px;
+        }
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, var(--highlight), var(--highlight2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .info-item {
+            font-size: 0.9rem;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-item i {
+            margin-right: 8px;
+            color: var(--highlight);
+            width: 16px;
+        }
+
+        /* 语录 - 右上角 */
+        .quote-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .quote {
+            font-size: 1.2rem;
+            line-height: 1.4;
+            font-style: italic;
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid var(--highlight);
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 0 8px 8px 0;
+            transition: all 0.5s ease;
+            cursor: pointer;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quote:hover {
+            background: rgba(255, 105, 180, 0.2);
+            transform: translateX(5px);
+        }
+
+        .quote.flash {
+            animation: flash 0.3s ease;
+            color: var(--highlight2);
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* 音乐播放器 - 底部中央 */
+        .music-player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .music-info {
+            display: flex;
+            flex-direction: column;
+            margin-right: 15px;
+            flex: 1;
+        }
+
+        .music-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .music-artist {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .music-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 0 8px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .progress-container {
+            width: 120px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--highlight), var(--highlight2));
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .volume-slider {
+            width: 70px;
+            margin-left: 8px;
+        }
+
+        /* 交互说明 - 左下角 */
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            max-width: 300px;
+        }
+
+        .instructions h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--highlight);
+            display: flex;
+            align-items: center;
+        }
+
+        .instructions h3 i {
+            margin-right: 8px;
+        }
+
+        .instruction-item {
+            font-size: 0.85rem;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .instruction-item i {
+            margin-right: 8px;
+            color: var(--highlight2);
+            width: 16px;
+        }
+
+        /* 状态信息 */
+        #info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-family: 'Segoe UI', sans-serif;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* 浮动爱心 */
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .heart {
+            position: absolute;
+            color: var(--highlight);
+            font-size: 20px;
+            opacity: 0;
+            animation: float 8s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 特效切换按钮 */
+        .effect-controls {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            max-width: 200px;
+        }
+
+        .effect-controls h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--highlight);
+            display: flex;
+            align-items: center;
+        }
+
+        .effect-controls h3 i {
+            margin-right: 8px;
+        }
+
+        .effect-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .effect-btn:hover {
+            background: rgba(255, 105, 180, 0.2);
+            transform: translateX(3px);
+        }
+
+        .effect-btn.active {
+            background: rgba(0, 255, 255, 0.2);
+            border-left: 3px solid var(--highlight2);
+        }
+
+        .effect-btn i {
+            margin-right: 8px;
+            width: 16px;
+        }
+
+        /* 全屏动画 */
+        .fullscreen-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .fullscreen-animation.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .love-text {
+            font-size: 8rem;
+            font-weight: bold;
+            color: transparent;
+            background: linear-gradient(45deg, #ff69b4, #ff1493, #00ffff, #0080ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 计数器显示 */
+        .counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+        .counter i {
+            margin-right: 8px;
+            color: var(--highlight);
+        }
+
+        @media (max-width: 768px) {
+
+            .personal-info,
+            .quote-container,
+            .instructions,
+            .effect-controls {
+                max-width: 90%;
+            }
+
+            .music-player {
+                width: 90%;
+                flex-wrap: wrap;
+                justify-content: center;
+                border-radius: 12px;
+                padding: 15px;
+            }
+
+            .music-info {
+                margin-right: 0;
+                margin-bottom: 10px;
+                text-align: center;
+                width: 100%;
+            }
+
+            .progress-container {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .effect-controls {
+                position: relative;
+                top: auto;
+                right: auto;
+                transform: none;
+                margin: 20px auto;
+                width: 90%;
+            }
+
+            .love-text {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="floating-hearts" id="hearts-container"></div>
+
+        <video id="videoEl" autoplay playsinline></video>
+        <canvas id="drawCanvas"></canvas>
+        <div id="threeDiv"></div>
+
+        <!-- 个人信息 - 左上角 -->
+        <div class="personal-info">
+            <div class="name">Xia Guoqing</div>
+            <div class="info-item">
+                <i class="fas fa-university"></i>
+                <span>International College, Jinan University</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Advisor: Prof. Long Shun</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-envelope"></i>
+                <span>2274743960@qq.com</span>
+            </div>
+        </div>
+
+        <!-- 语录 - 右上角 -->
+        <div class="quote-container">
+            <div class="quote" id="quote">
+                "We loved with a love that was more than love."
+            </div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                Click or hover to change quote
+            </div>
+        </div>
+
+        <!-- 手势计数器 -->
+        <div class="counter">
+            <i class="fas fa-hands"></i>
+            <span id="handCounter">手势计数: 0/10</span>
+        </div>
+
+        <!-- 特效控制 - 右侧 -->
+        <div class="effect-controls">
+            <h3><i class="fas fa-magic"></i> Effects</h3>
+            <button class="effect-btn active" id="effect-heart">
+                <i class="fas fa-heart"></i> Heart Particles
+            </button>
+            <button class="effect-btn" id="effect-spiral">
+                <i class="fas fa-circle-notch"></i> Spiral
+            </button>
+            <button class="effect-btn" id="effect-explosion">
+                <i class="fas fa-bomb"></i> Explosion
+            </button>
+            <button class="effect-btn" id="effect-wave">
+                <i class="fas fa-water"></i> Wave
+            </button>
+        </div>
+
+        <!-- 音乐播放器 - 底部中央 -->
+        <div class="music-player">
+            <div class="music-info">
+                <div class="music-title" id="musicTitle">泡沫 (Foam) - G.E.M.</div>
+                <div class="music-artist" id="musicArtist">邓紫棋</div>
+            </div>
+            <div class="music-controls">
+                <button class="music-btn" id="prev-btn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="music-btn" id="play-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="music-btn" id="next-btn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+            <div class="progress-container">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="volume-container">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.7">
+            </div>
+        </div>
+
+        <!-- 交互说明 - 左下角 -->
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> Interaction Guide</h3>
+            <div class="instruction-item">
+                <i class="fas fa-hand-pointer"></i>
+                <span>Move cursor to interact with particles</span>
+            </div>
+            <div class="instruction-item">
+                <i class="fas fa-hand-rock"></i>
+                <span>Show your hand to make hearts beat</span>
+            </div>
+            <div class="instruction-item">
+                <i class="fas fa-eye"></i>
+                <span>Blink to switch between particle effects</span>
+            </div>
+            <div class="instruction-item">
+                <i class="fas fa-hands"></i>
+                <span>Pinch 10 times to unlock special animation</span>
+            </div>
+        </div>
+
+        <!-- 全屏动画 -->
+        <div class="fullscreen-animation" id="fullscreenAnimation">
+            <div class="love-text">I LOVE YOU</div>
+        </div>
+
+        <div id="info">Loading...</div>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="backgroundMusic" loop>
+        <!-- 请替换为您的泡沫.mp3文件路径 -->
+        <source src="泡沫.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+    <audio id="heartbeatSound">
+        <!-- 请替换为您的心跳声文件路径 -->
+        <source src="heartbeat.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+    <audio id="effectSound">
+        <!-- 请替换为您的特效音文件路径 -->
+        <source src="effect.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // 创建浮动爱心
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            const heartCount = 15;
+
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDelay = Math.random() * 8 + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // 音乐播放器功能
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progress = document.getElementById('progress');
+        const volumeSlider = document.getElementById('volume-slider');
+        const musicTitle = document.getElementById('musicTitle');
+        const musicArtist = document.getElementById('musicArtist');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const heartbeatSound = document.getElementById('heartbeatSound');
+        const effectSound = document.getElementById('effectSound');
+
+        // 音乐播放列表
+        const playlist = [
+            {
+                title: "泡沫 (Foam)",
+                artist: "邓紫棋",
+                src: "泡沫.mp3"
+            }
+        ];
+
+        let currentTrack = 0;
+        let isPlaying = false;
+
+        // 加载当前曲目
+        function loadTrack(index) {
+            currentTrack = index;
+            const track = playlist[currentTrack];
+            musicTitle.textContent = track.title;
+            musicArtist.textContent = track.artist;
+            backgroundMusic.src = track.src;
+            backgroundMusic.load();
+        }
+
+        // 播放/暂停
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                backgroundMusic.pause();
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                backgroundMusic.play().catch(e => {
+                    console.log("Autoplay prevented. User interaction required.");
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                });
+                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // 下一首
+        nextBtn.addEventListener('click', () => {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            loadTrack(currentTrack);
+            if (isPlaying) {
+                backgroundMusic.play();
+            }
+        });
+
+        // 上一首
+        prevBtn.addEventListener('click', () => {
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            loadTrack(currentTrack);
+            if (isPlaying) {
+                backgroundMusic.play();
+            }
+        });
+
+        // 更新进度条
+        backgroundMusic.addEventListener('timeupdate', () => {
+            if (backgroundMusic.duration) {
+                const progressPercent = (backgroundMusic.currentTime / backgroundMusic.duration) * 100;
+                progress.style.width = `${progressPercent}%`;
+            }
+        });
+
+        // 音量控制
+        volumeSlider.addEventListener('input', () => {
+            backgroundMusic.volume = volumeSlider.value;
+            if (heartbeatSound) heartbeatSound.volume = volumeSlider.value * 0.7;
+            if (effectSound) effectSound.volume = volumeSlider.value * 0.7;
+        });
+
+        // 意难平语录数组
+        const quotes = [
+            "We loved with a love that was more than love.",
+            "The heart was made to be broken.",
+            "It is better to have loved and lost than never to have loved at all.",
+            "You don't get to choose if you get hurt in this world, but you do have some say in who hurts you.",
+            "The worst kind of pain is when you're smiling just to stop the tears from falling.",
+            "I wish I could just forget you and move on, but my heart won't let me.",
+            "Sometimes, the person you'd take a bullet for is the one behind the trigger.",
+            "The hardest part about loving someone is knowing when to let go.",
+            "I miss you a little too much, a little too often, and a little more every day.",
+            "You can't buy love, but you can pay heavily for it.",
+            "The saddest thing about love is that not only that it cannot last forever, but that heartbreak is soon forgotten.",
+            "I'm not crying because of you; you're not worth it. I'm crying because my delusion of who you were was shattered by the truth of who you are."
+        ];
+
+        // 随机选择语录
+        const quoteElement = document.getElementById('quote');
+        quoteElement.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
+        // 添加鼠标悬停闪烁效果
+        quoteElement.addEventListener('mouseenter', () => {
+            quoteElement.classList.add('flash');
+            setTimeout(() => {
+                quoteElement.classList.remove('flash');
+            }, 300);
+        });
+
+        // 添加点击切换语录功能
+        quoteElement.addEventListener('click', () => {
+            quoteElement.classList.add('flash');
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * quotes.length);
+                quoteElement.textContent = quotes[randomIndex];
+                quoteElement.classList.remove('flash');
+            }, 300);
+        });
+
+        // 特效控制
+        const effectButtons = document.querySelectorAll('.effect-btn');
+        effectButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                effectButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // 播放特效音
+                if (effectSound) {
+                    effectSound.currentTime = 0;
+                    effectSound.play().catch(e => console.log("Effect sound playback failed"));
+                }
+            });
+        });
+
+        // 初始化摄像头和手部检测
+        const vid = document.getElementById('videoEl');
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('info');
+        const threeWrapper = document.getElementById('threeDiv');
+        const handCounterElement = document.getElementById('handCounter');
+        const fullscreenAnimation = document.getElementById('fullscreenAnimation');
+
+        let scene3, camera3, renderer3;
+        let leftSmall, leftLarge, rightSmall, rightLarge;
+        let leftSmallPts = [], leftLargePts = [], rightSmallPts = [], rightLargePts = [];
+        let currentEffect = 'heart';
+        let handPinchCount = 0;
+        let lastPinchTime = 0;
+        let isProcessingFace = false;
+
+        // 眨眼检测相关变量
+        let blinkCount = 0;
+        let lastBlinkTime = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function setupLayout() {
+            resizeCanvas();
+        }
+
+        window.addEventListener('resize', () => {
+            setupLayout();
+            if (renderer3) {
+                renderer3.setSize(window.innerWidth, window.innerHeight);
+            }
+            if (camera3) {
+                camera3.aspect = window.innerWidth / window.innerHeight;
+                camera3.updateProjectionMatrix();
+            }
+        });
+
+        setupLayout();
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
+                });
+                vid.srcObject = stream;
+                return new Promise(resolve => {
+                    vid.onloadedmetadata = () => {
+                        setupLayout();
+                        resolve(vid);
+                    };
+                });
+            } catch (err) {
+                status.textContent = 'Camera access failed: ' + err.message;
+                throw err;
+            }
+        }
+
+        // 生成心形粒子 - 增大了粒子尺寸
+        function generateHeartParticles(num, scaleRange, depth = 0.2, colors = [0xff69b4, 0xff1493]) {
+            const geo = new THREE.BufferGeometry();
+            const posArr = [];
+            const colArr = [];
+            const dataArr = [];
+            for (let i = 0; i < num; i++) {
+                const t = Math.random() * Math.PI * 2;
+                const s = scaleRange[0] + Math.random() * (scaleRange[1] - scaleRange[0]);
+                const x = s * 16 * Math.pow(Math.sin(t), 3);
+                const y = s * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                const z = (Math.random() - 0.5) * depth;
+                posArr.push(x * 0.1, y * 0.1, z);
+                const c = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
+                colArr.push(c.r, c.g, c.b);
+                dataArr.push({
+                    bx: x * 0.1,
+                    by: y * 0.1,
+                    bz: z,
+                    ang: Math.random() * Math.PI * 2,
+                    radius: Math.random() * 0.08, // 增大了粒子半径
+                    effect: currentEffect
+                });
+            }
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(colArr, 3));
+            return { geo, dataArr };
+        }
+
+        // 初始化Three.js场景
+        function initThree() {
+            scene3 = new THREE.Scene();
+            camera3 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera3.position.z = 10;
+            renderer3 = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer3.setSize(window.innerWidth, window.innerHeight);
+            renderer3.setClearColor(0x000000, 0);
+            threeWrapper.appendChild(renderer3.domElement);
+
+            // 创建粒子系统
+            createParticleSystems();
+
+            // 开始动画循环
+            tick();
+        }
+
+        function createParticleSystems() {
+            // 清理现有粒子
+            if (leftSmall) scene3.remove(leftSmall);
+            if (leftLarge) scene3.remove(leftLarge);
+            if (rightSmall) scene3.remove(rightSmall);
+            if (rightLarge) scene3.remove(rightLarge);
+
+            // 创建新的粒子系统 - 增大了粒子尺寸
+            const leftInner = generateHeartParticles(1200, [0.8, 1.2], 0.3); // 增大了缩放范围
+            leftSmallPts = leftInner.dataArr;
+            leftSmall = new THREE.Points(leftInner.geo, new THREE.PointsMaterial({
+                vertexColors: true,
+                size: 0.12, // 增大了粒子尺寸
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            }));
+            leftSmall.position.x = -9;
+            scene3.add(leftSmall);
+
+            const leftOuter = generateHeartParticles(4000, [1.6, 2.8], 0.5); // 增大了缩放范围
+            leftLargePts = leftOuter.dataArr;
+            leftLarge = new THREE.Points(leftOuter.geo, new THREE.PointsMaterial({
+                vertexColors: true,
+                size: 0.09, // 增大了粒子尺寸
+                transparent: true,
+                opacity: 0.5,
+                blending: THREE.AdditiveBlending
+            }));
+            leftLarge.position.x = -9;
+            scene3.add(leftLarge);
+
+            const rightInner = generateHeartParticles(1200, [0.8, 1.2], 0.3); // 增大了缩放范围
+            rightSmallPts = rightInner.dataArr;
+            rightSmall = new THREE.Points(rightInner.geo, new THREE.PointsMaterial({
+                vertexColors: true,
+                size: 0.12, // 增大了粒子尺寸
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending
+            }));
+            rightSmall.position.x = 6;
+            scene3.add(rightSmall);
+
+            const rightOuter = generateHeartParticles(4000, [1.6, 2.8], 0.5); // 增大了缩放范围
+            rightLargePts = rightOuter.dataArr;
+            rightLarge = new THREE.Points(rightOuter.geo, new THREE.PointsMaterial({
+                vertexColors: true,
+                size: 0.09, // 增大了粒子尺寸
+                transparent: true,
+                opacity: 0.5,
+                blending: THREE.AdditiveBlending
+            }));
+            rightLarge.position.x = 6;
+            scene3.add(rightLarge);
+        }
+
+        // 动画循环
+        function tick() {
+            requestAnimationFrame(tick);
+            let pos;
+
+            // 更新粒子位置
+            updateParticlePositions(leftSmall, leftSmallPts);
+            updateParticlePositions(leftLarge, leftLargePts);
+            updateParticlePositions(rightSmall, rightSmallPts);
+            updateParticlePositions(rightLarge, rightLargePts);
+
+            renderer3.render(scene3, camera3);
+        }
+
+        function updateParticlePositions(particleSystem, particleData) {
+            const pos = particleSystem.geometry.attributes.position.array;
+            const time = Date.now() * 0.002;
+
+            for (let i = 0; i < particleData.length; i++) {
+                const idx = i * 3;
+                const p = particleData[i];
+
+                let offsetX = 0, offsetY = 0, offsetZ = 0;
+
+                // 根据特效类型应用不同的动画
+                switch (currentEffect) {
+                    case 'heart':
+                        const o = Math.sin(time + p.ang) * p.radius;
+                        offsetX = o;
+                        offsetY = o;
+                        offsetZ = o;
+                        break;
+                    case 'spiral':
+                        offsetX = Math.sin(time * 0.5 + p.ang) * p.radius * 2;
+                        offsetY = Math.cos(time * 0.5 + p.ang) * p.radius * 2;
+                        offsetZ = Math.sin(time + p.ang) * p.radius;
+                        break;
+                    case 'explosion':
+                        offsetX = (Math.random() - 0.5) * p.radius * 3;
+                        offsetY = (Math.random() - 0.5) * p.radius * 3;
+                        offsetZ = (Math.random() - 0.5) * p.radius * 3;
+                        break;
+                    case 'wave':
+                        offsetX = Math.sin(time * 2 + p.bx * 10) * p.radius;
+                        offsetY = Math.cos(time * 2 + p.by * 10) * p.radius;
+                        offsetZ = Math.sin(time + p.ang) * p.radius;
+                        break;
+                }
+
+                pos[idx] = p.bx + offsetX;
+                pos[idx + 1] = p.by + offsetY;
+                pos[idx + 2] = p.bz + offsetZ;
+            }
+
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // 计算距离
+        function dist3(p1, p2) {
+            const dx = p1.x - p2.x, dy = p1.y - p2.y, dz = (p1.z || 0) - (p2.z || 0);
+            return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        // 设置手部检测
+        async function setupHands() {
+            status.textContent = 'Loading hands detection...';
+            const hands = new Hands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            await hands.initialize();
+            status.textContent = 'Hands detection ready';
+            return hands;
+        }
+
+        // 设置面部检测
+        async function setupFaceMesh() {
+            status.textContent = 'Loading face detection...';
+            const faceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+            });
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            await faceMesh.initialize();
+            status.textContent = 'Face detection ready';
+            return faceMesh;
+        }
+
+        // 绘制手部
+        function drawHand(lms, left) {
+            const sz = Math.min(window.innerWidth, window.innerHeight);
+            const lw = Math.max(2, Math.min(5, sz / 300));
+            const ps = Math.max(2, Math.min(8, sz / 250));
+            const conns = [
+                [0, 1], [1, 2], [2, 3], [3, 4],
+                [0, 5], [5, 6], [6, 7], [7, 8],
+                [0, 9], [9, 10], [10, 11], [11, 12],
+                [0, 13], [13, 14], [14, 15], [15, 16],
+                [0, 17], [17, 18], [18, 19], [19, 20],
+                [0, 5], [5, 9], [9, 13], [13, 17]
+            ];
+            const col = left ? '#00FF00' : '#00FFFF';
+            ctx.lineWidth = lw;
+            ctx.strokeStyle = col;
+            conns.forEach(([i, j]) => {
+                const s = lms[i], e = lms[j];
+                ctx.beginPath();
+                ctx.moveTo(s.x * canvas.width, s.y * canvas.height);
+                ctx.lineTo(e.x * canvas.width, e.y * canvas.height);
+                ctx.stroke();
+            });
+            lms.forEach((lm, idx) => {
+                let pc = (idx === 4 || idx === 8) ? '#FF0000' : col;
+                ctx.fillStyle = pc;
+                ctx.beginPath();
+                ctx.arc(lm.x * canvas.width, lm.y * canvas.height, ps * 1.2, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+        }
+
+        // 处理手部检测结果
+        function processHands(results) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) resizeCanvas();
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                status.textContent = results.multiHandLandmarks.length === 1 ? '1 hand detected' : `${results.multiHandLandmarks.length} hands detected`;
+
+                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                    const lm = results.multiHandLandmarks[i];
+                    const handLabel = results.multiHandedness[i].label;
+                    const leftHand = handLabel === 'Left';
+                    drawHand(lm, leftHand);
+
+                    // 当检测到手势时，使语录闪烁
+                    quoteElement.classList.add('flash');
+                    setTimeout(() => {
+                        quoteElement.classList.remove('flash');
+                    }, 300);
+
+                    // 右手控制粒子大小
+                    if (!leftHand) {
+                        const t = lm[4], ind = lm[8];
+                        const pd = dist3(t, ind);
+                        const sMin = 0.9, sMax = 1.2, oMin = 0.8, oMax = 1.0;
+                        let sScale = sMin + (pd - 0.05) * (sMax - sMin) / (0.25 - 0.05);
+                        sScale = Math.min(sMax, Math.max(sMin, sScale));
+                        let oScale = oMax - (sScale - sMin) * (oMax - oMin) / (sMax - sMin);
+                        oScale = Math.min(oMax, Math.max(oMin, oScale));
+
+                        leftSmall.scale.set(sScale, sScale, sScale);
+                        leftLarge.scale.set(oScale, oScale, oScale);
+                        rightSmall.scale.set(sScale, sScale, sScale);
+                        rightLarge.scale.set(oScale, oScale, oScale);
+
+                        // 当手指非常接近时，增加手势计数
+                        if (pd < 0.08 && Date.now() - lastPinchTime > 500) {
+                            handPinchCount++;
+                            lastPinchTime = Date.now();
+                            handCounterElement.textContent = `手势计数: ${handPinchCount}/10`;
+
+                            // 播放心跳声
+                            if (heartbeatSound) {
+                                heartbeatSound.currentTime = 0;
+                                heartbeatSound.play().catch(e => console.log("Audio playback failed"));
+                            }
+
+                            // 每10次手势触发全屏动画
+                            if (handPinchCount >= 10) {
+                                showFullscreenAnimation();
+                                handPinchCount = 0;
+                                handCounterElement.textContent = `手势计数: ${handPinchCount}/10`;
+                            }
+                        }
+                    }
+                }
+            } else {
+                status.textContent = 'No hands detected';
+            }
+        }
+
+        // 处理面部检测结果 - 眨眼检测
+        function processFace(results) {
+            if (isProcessingFace) return;
+            isProcessingFace = true;
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const landmarks = results.multiFaceLandmarks[0];
+
+                // 检测眨眼
+                detectBlink(landmarks);
+            }
+
+            isProcessingFace = false;
+        }
+
+        // 眨眼检测
+        function detectBlink(landmarks) {
+            // 使用眼睛纵横比(EAR)算法检测眨眼
+            // 左眼关键点索引
+            const leftEye = [33, 160, 158, 133, 153, 144];
+            // 右眼关键点索引
+            const rightEye = [362, 385, 387, 263, 373, 380];
+
+            const leftEAR = calculateEAR(landmarks, leftEye);
+            const rightEAR = calculateEAR(landmarks, rightEye);
+
+            const ear = (leftEAR + rightEAR) / 2.0;
+
+            // 阈值可根据需要调整
+            if (ear < 0.2 && Date.now() - lastBlinkTime > 1000) {
+                blinkCount++;
+                lastBlinkTime = Date.now();
+
+                // 切换粒子效果
+                const effects = ['heart', 'spiral', 'explosion', 'wave'];
+                const currentIndex = effects.indexOf(currentEffect);
+                const nextEffect = effects[(currentIndex + 1) % effects.length];
+
+                // 更新效果按钮状态
+                effectButtons.forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`effect-${nextEffect}`).classList.add('active');
+
+                // 应用新效果
+                currentEffect = nextEffect;
+                createParticleSystems();
+
+                // 播放特效音
+                if (effectSound) {
+                    effectSound.currentTime = 0;
+                    effectSound.play().catch(e => console.log("Effect sound playback failed"));
+                }
+            }
+        }
+
+        // 计算眼睛纵横比
+        function calculateEAR(landmarks, eyePoints) {
+            // 计算垂直距离
+            const p2 = landmarks[eyePoints[1]];
+            const p6 = landmarks[eyePoints[5]];
+            const verticalDist = dist3(p2, p6);
+
+            // 计算水平距离
+            const p1 = landmarks[eyePoints[0]];
+            const p4 = landmarks[eyePoints[3]];
+            const horizontalDist = dist3(p1, p4);
+
+            // 计算EAR
+            return verticalDist / (2.0 * horizontalDist);
+        }
+
+        // 显示全屏动画
+        function showFullscreenAnimation() {
+            fullscreenAnimation.classList.add('active');
+
+            // 3秒后隐藏动画
+            setTimeout(() => {
+                fullscreenAnimation.classList.remove('active');
+            }, 3000);
+        }
+
+        // 特效按钮事件
+        document.getElementById('effect-heart').addEventListener('click', () => {
+            currentEffect = 'heart';
+            createParticleSystems();
+        });
+
+        document.getElementById('effect-spiral').addEventListener('click', () => {
+            currentEffect = 'spiral';
+            createParticleSystems();
+        });
+
+        document.getElementById('effect-explosion').addEventListener('click', () => {
+            currentEffect = 'explosion';
+            createParticleSystems();
+        });
+
+        document.getElementById('effect-wave').addEventListener('click', () => {
+            currentEffect = 'wave';
+            createParticleSystems();
+        });
+
+        // 主应用程序
+        async function runApp() {
+            try {
+                await initCamera();
+                initThree();
+                createHearts();
+                loadTrack(0);
+
+                const hands = await setupHands();
+                const faceMesh = await setupFaceMesh();
+
+                hands.onResults(processHands);
+                faceMesh.onResults(processFace);
+
+                // 创建MediaPipe相机实例
+                const camera = new Camera(vid, {
+                    onFrame: async () => {
+                        await Promise.all([
+                            hands.send({ image: vid }),
+                            faceMesh.send({ image: vid })
+                        ]);
+                    },
+                    width: 1280,
+                    height: 720
+                });
+                camera.start();
+
+                status.textContent = 'System ready! Show your hands to interact';
+                // 3秒后隐藏状态信息
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+
+            } catch (e) {
+                status.textContent = `Error: ${e.message}`;
+                console.error(e);
+            }
+        }
+
+        // 启动应用
+        runApp();
+    </script>
+</body>
+
+</html>
